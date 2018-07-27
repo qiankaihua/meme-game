@@ -18,39 +18,45 @@ export default class AIController {
         this.roles = roles;
         this.commandList = [];
         this.keyTimer = {};
-        // this.magicMap = [];
-        // this.routeFlag = {};
-        // for (let r = 0; r < Storage.fullyMap.length; r++) {
-        //     this.magicMap[r] = Storage.fullyMap[r].slice(0);
-        // }
+        this.magicMap = [];
+        this.routeFlag = {};
+        for (let r = 0; r < Storage.fullyMap.length; r++) {
+            this.magicMap[r] = Storage.fullyMap[r].slice(0);
+        }
+        // console.log(this.magicMap);
     }
 
     public start() {
-        this.main();
         setTimeout(() => {
             if (this.commandList.length === 0) {
                 this.commandList = [];
+                this.clearTimer();
                 this.keyTimer = {};
-                this.magicMap = [];
+                // this.magicMap = [];
                 this.routeFlag = {};
-                for (let r = 0; r < Storage.fullyMap.length; r++) {
-                    this.magicMap[r] = Storage.fullyMap[r].slice(0);
-                }
+                // for (let r = 0; r < Storage.fullyMap.length; r++) {
+                //     this.magicMap[r] = Storage.fullyMap[r].slice(0);
+                // }
                 this.followHim();
+                this.main();
                 this.start();
             }
-        }, 3000);
+        }, 500);
         // this.moveController(2, 100);
         // this.moveController(1, 20);
     }
-
+    private clearTimer(): void {
+        for (const t of Object.keys(this.keyTimer)) {
+            cancelAnimationFrame(this.keyTimer[t]);
+        }
+    }
     private main() {
         while (this.commandList.length) {
             let command: {[key: string]: any};
             command = this.commandList.shift();
             this.moveController(command.code, command.frames, command.offsets);
         }
-        requestAnimationFrame(() => this.main());
+        // requestAnimationFrame(() => this.main());
     }
     private randomNum(num: number): number {
         return Math.floor(Math.random() * (num + 1));
@@ -88,21 +94,34 @@ export default class AIController {
         // let time = 0;
         while (queue.size) {
             count++;
+            if (count > 15000) {
+                console.log("break", count);
+                return;
+            }
             const node: {[key: string]: any} = queue.pop();
-            for (let xrange = 10; xrange >= 0; xrange--) {
+            let flag: boolean = false;
+            for (let t = 0; t <= 40; t++) {
+                if (node.y + t === endY) {
+                    flag = true;
+                }
+            }
+            for (let xrange = 30; xrange >= 0; xrange--) {
                 const endLeft = endX - this.roles["3"].width - xrange;
                 const endRight = endX + this.roles["2"].width + xrange;
+                const endTop = node.y - xrange;
+                const endBottom = node.y + 40 + xrange;
                 if (
                     (node.x === endLeft || node.x === endRight) &&
-                    Math.abs(node.y - endY) < 10
+                    (flag || (endBottom === endY || endTop === endY))
                 ) {
                     // resolve node.route
                     this.resolveRoute(node.route);
-                    const context =  Storage.grids.ctx;
-                    context.fillStyle = this.randomColor16();
-                    for (const point of node.route) {
-                        context.fillRect(point.x, point.y, 10, 10);
-                    }
+                    // const context =  Storage.grids.ctx;
+                    // context.fillStyle = this.randomColor16();
+                    // for (const point of node.route) {
+                    //     context.fillRect(point.x, point.y, 10, 10);
+                    //     context.strokeRect(point.x, point.y, 40, 40);
+                    // }
                     console.log(node.route);
                     console.log(count);
                     return;
@@ -181,7 +200,7 @@ export default class AIController {
                 // time += 5;
             }
         }
-        console.log(count);
+        // console.log(count);
     }
 
     private collide(dir: number, next: {[key: string]: any}): boolean {
