@@ -23,25 +23,29 @@ export default class AIController {
         for (let r = 0; r < Storage.fullyMap.length; r++) {
             this.magicMap[r] = Storage.fullyMap[r].slice(0);
         }
-        // console.log(this.magicMap);
     }
 
     public start() {
-        setTimeout(() => {
+        document.addEventListener("click", (event) => {
             if (this.commandList.length === 0) {
                 this.commandList = [];
                 this.clearTimer();
                 this.keyTimer = {};
-                // this.magicMap = [];
                 this.routeFlag = {};
-                // for (let r = 0; r < Storage.fullyMap.length; r++) {
-                //     this.magicMap[r] = Storage.fullyMap[r].slice(0);
-                // }
                 this.followHim();
                 this.main();
-                this.start();
             }
-        }, 500);
+        });
+        // setInterval(() => {
+        //     if (this.commandList.length === 0) {
+        //         this.commandList = [];
+        //         this.clearTimer();
+        //         this.keyTimer = {};
+        //         this.routeFlag = {};
+        //         this.followHim();
+        //         this.main();
+        //     }
+        // }, 1000);
         // this.moveController(2, 100);
         // this.moveController(1, 20);
     }
@@ -58,31 +62,34 @@ export default class AIController {
         }
         // requestAnimationFrame(() => this.main());
     }
+
     private randomNum(num: number): number {
         return Math.floor(Math.random() * (num + 1));
     }
-    private randomColor16(): string {
-        let r = this.randomNum(255).toString(16);
-        let g = this.randomNum(255).toString(16);
-        let b = this.randomNum(255).toString(16);
-        if (r.length < 2) {
-            r = "0" + r;
-        }
-        if (g.length < 2) {
-            g = "0" + g;
-        }
-        if (b.length < 2) {
-            b = "0" + b;
-        }
-        return "#" + r + g + b;
+
+    private randomColorRGBA(): string {
+        const r = this.randomNum(255);
+        const g = this.randomNum(255);
+        const b = this.randomNum(255);
+        return `rgba(${r}, ${g}, ${b}, 0.6)`;
     }
     private followHim() {
+        Storage.findRouteBlock.canvas.height = Storage.findRouteBlock.canvas.height;
         let count = 0;
-        const endX = this.roles["2"].x;
-        const endY = this.roles["2"].y;
-        const moveSpeed: number = this.roles["3"].moveSpeed;
-        const queue: PriorityQueue = new PriorityQueue(endX, endY);
 
+        const endX = (this.roles["2"].x + Storage.sceneWidth) % Storage.sceneWidth;
+        const endLeft = endX;
+        const endRight = (endX + this.roles["2"].width - 1 + Storage.sceneWidth) % Storage.sceneWidth;
+        const endExtendLeft = (endLeft - 10 + Storage.sceneWidth) % Storage.sceneWidth;
+        const endExtendRight = (endRight + 10 + Storage.sceneWidth) % Storage.sceneWidth;
+
+        const endY = (this.roles["2"].y + Storage.sceneHeight) % Storage.sceneHeight;
+
+        const moveSpeed: number = this.roles["3"].moveSpeed;
+        const queue: PriorityQueue = new PriorityQueue(this.roles["3"].x, this.roles["3"].y, endX, endY);
+
+        console.log("started......");
+        console.log(this.roles["3"].x, this.roles["3"].y, endX, endY);
         queue.push_back({
             x: this.roles["3"].x,
             y: this.roles["3"].y,
@@ -90,42 +97,47 @@ export default class AIController {
             jumpSpeed: this.roles["3"].jumpSpeed,
             steps: 0,
             route: [],
+            jump: 0,
         });
         // let time = 0;
         while (queue.size) {
             count++;
-            if (count > 15000) {
-                console.log("break", count);
-                return;
-            }
+            // if (count > 15000) {
+            //     console.log("break", count);
+            //     return;
+            // }
             const node: {[key: string]: any} = queue.pop();
-            let flag: boolean = false;
-            for (let t = 0; t <= 40; t++) {
-                if (node.y + t === endY) {
-                    flag = true;
-                }
-            }
-            for (let xrange = 30; xrange >= 0; xrange--) {
-                const endLeft = endX - this.roles["3"].width - xrange;
-                const endRight = endX + this.roles["2"].width + xrange;
-                const endTop = node.y - xrange;
-                const endBottom = node.y + 40 + xrange;
-                if (
-                    (node.x === endLeft || node.x === endRight) &&
-                    (flag || (endBottom === endY || endTop === endY))
-                ) {
-                    // resolve node.route
-                    this.resolveRoute(node.route);
-                    // const context =  Storage.grids.ctx;
-                    // context.fillStyle = this.randomColor16();
-                    // for (const point of node.route) {
-                    //     context.fillRect(point.x, point.y, 10, 10);
-                    //     context.strokeRect(point.x, point.y, 40, 40);
-                    // }
-                    console.log(node.route);
-                    console.log(count);
-                    return;
-                }
+            // let flag: boolean = false;
+            // for (let t = 0; t <= 40; t++) {
+            //     if (node.y + t === endY) {
+            //         flag = true;
+            //     }
+            // }
+            // for (let xrange = 10; xrange >= 0; xrange --) {
+            //     const endTop = node.y - xrange;
+            //     const endBottom = node.y + 40 + xrange;
+            //     if (endBottom === endY || endTop === endY) flag = true;
+            // }
+            const curLeft = (node.x + Storage.sceneWidth) % Storage.sceneWidth;
+            const curRight = (node.x + this.roles["3"].width - 1 + Storage.sceneWidth) % Storage.sceneWidth;
+            const curHead = (node.y + Storage.sceneHeight) % Storage.sceneHeight;
+            const curFoot = (node.y + this.roles["3"].height - 1 + Storage.sceneHeight) % Storage.sceneHeight;
+            if (
+                ((curLeft >= endRight && curLeft <= endExtendRight) ||
+                (endRight > endExtendRight && (curLeft >= endRight || curLeft <= endExtendRight)) ||
+                (curRight >= endExtendLeft && curRight <= endLeft) ||
+                (endExtendLeft > endLeft && (curRight >= endExtendLeft || curRight <= endLeft)))
+                &&
+                endY === node.y
+                //  flag
+            ) {
+                // resolve node.route
+                this.resolveRoute(node.route);
+                console.log(node.route);
+                console.log(count);
+                Storage.findRouteBlock.ctx.fillStyle = this.randomColorRGBA();
+                Storage.findRouteBlock.ctx.fill();
+                return;
             }
             for (let dir = 0; dir < 3; dir++) {
                 let isCollide: boolean;
@@ -133,13 +145,15 @@ export default class AIController {
                 const y: number = node.y;
                 const inAir: boolean = node.inAir;
                 const jumpSpeed: number = node.jumpSpeed;
-                const steps: number = node.steps + 1;
+                const steps: number = node.steps;
+                const jump: number = node.jump + dir % 2;
                 const next: {[key: string]: any} = {
                     x,
                     y,
                     inAir,
                     jumpSpeed,
                     steps,
+                    jump,
                 };
 
                 if (Math.abs(Storage.dy[dir])) {
@@ -153,13 +167,14 @@ export default class AIController {
                 next.x = (next.x + Storage.sceneWidth) % Storage.sceneWidth;
                 isCollide = true;
                 if (Math.abs(Storage.dx[dir])) {
+                    next.steps += moveSpeed;
                     while (isCollide) {
                         isCollide = this.collide(dir, next);
                     }
                 }
 
                 if (next.inAir) {
-                    next.steps++;
+                    next.steps += Math.abs(next.jumpSpeed);
                     next.y -= next.jumpSpeed;
                     if (next.jumpSpeed > 0) {
                         isCollide = true;
@@ -191,15 +206,13 @@ export default class AIController {
                 if (!this.routeFlag[flagKey]) {
                     this.routeFlag[flagKey] = true;
                     queue.push_back(next);
+                    Storage.findRouteBlock.ctx.rect(next.x, next.y, 40, 40);
                 }
-
-                // const context =  Storage.grids.ctx;
-                // setTimeout(() => {
-                //     context.fillRect(next.x, next.y, 4, 4);
-                // }, time);
-                // time += 5;
             }
         }
+        console.log(count);
+        Storage.findRouteBlock.ctx.fillStyle = this.randomColorRGBA();
+        Storage.findRouteBlock.ctx.fill();
         // console.log(count);
     }
 
@@ -250,13 +263,14 @@ export default class AIController {
         let code: string;
         let frames: number = 0;
         let offsets: number = 0;
-        Storage.grids.ctx.beginPath();
+        Storage.route.canvas.height = Storage.route.canvas.height;
+        Storage.route.ctx.beginPath();
         for (const node of route) {
             const drawX: number = (node.x + this.roles["3"].width / 2 + Storage.sceneWidth) % Storage.sceneWidth;
             const drawY: number = (node.y + this.roles["3"].height / 2 + Storage.sceneHeight) % Storage.sceneHeight;
             const radius: number = 6;
-            Storage.grids.ctx.moveTo(drawX + radius, drawY);
-            Storage.grids.ctx.arc(drawX, drawY, 6, 0, 2 * Math.PI);
+            Storage.route.ctx.moveTo(drawX + radius, drawY);
+            Storage.route.ctx.arc(drawX, drawY, radius, 0, 2 * Math.PI);
             switch (temp) {
                 case 0:
                     code = "MoveLeft";
@@ -282,8 +296,8 @@ export default class AIController {
             frames++;
         }
         this.commandList.push({ code, frames, offsets });
-        Storage.grids.ctx.fillStyle = "red";
-        Storage.grids.ctx.fill();
+        Storage.route.ctx.fillStyle = this.randomColorRGBA();
+        Storage.route.ctx.fill();
     }
 
     private simulateKeyboardEvent(type: string, code: string) {
