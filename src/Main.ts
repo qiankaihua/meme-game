@@ -148,11 +148,11 @@ export default class Main {
             x: (+id - 2) * 600,
             y: Storage.sceneHeight - 54,
             maxHealthPoint: 100,
-            attackPower: 3,
+            attackPower: 9,
             attackRange: 12,
             moveSpeed: 4,
             jumpSpeed: 19,
-            weapon: id === "2" ? null : "gun",
+            weapon: id === "3" ? null : "gun",
         };
         this.roles[id] = new Role(data);
     }
@@ -276,15 +276,17 @@ export default class Main {
                         this.bullets[this.bulletId++] = new Bullet(
                             this.roles["2"].x + 20,
                             this.roles["2"].y + this.roles["2"].height / 2,
-                            300,
                             6,
+                            300,
                             "2",
                             this.roles["2"].horizonDirection,
                         );
                         break;
                     default:
                         for (const aid of this.roles["2"].attackId) {
-                            if (this.roles[aid].action !== "defense") {
+                            if (this.roles[aid].action === "defense") {
+                                this.roles[aid].healthPoint -= this.roles["2"].attackPower / 3;
+                            } else {
                                 this.roles[aid].healthPoint -= this.roles["2"].attackPower;
                             }
                         }
@@ -385,7 +387,9 @@ export default class Main {
                         break;
                     default:
                         for (const aid of this.roles["3"].attackId) {
-                            if (this.roles[aid].action !== "defense") {
+                            if (this.roles[aid].action === "defense") {
+                                this.roles[aid].healthPoint -= this.roles["3"].attackPower / 3;
+                            } else {
                                 this.roles[aid].healthPoint -= this.roles["3"].attackPower;
                             }
                         }
@@ -435,13 +439,11 @@ export default class Main {
             if (this.bullets[key]) {
                 this.bullets[key].render();
                 this.bullets[key].move();
-                if (this.collisionJudge(this.bullets[key], this.bullets[key].direction)) {
+                if (
+                    this.collisionJudge(this.bullets[key], this.bullets[key].direction) ||
+                    this.ifOverDistance(key)
+                ) {
                     delete this.bullets[key];
-                }
-                if (this.bullets[key]) {
-                    if (this.ifOverDistance(key)) {
-                        delete this.bullets[key];
-                    }
                 }
             }
         }
@@ -584,7 +586,9 @@ export default class Main {
                         const id: number = Storage.fullyMap[nr][nright];
                         /** The obj is a bullet */
                         if (id && id !== +obj.hostId) {
-                            if (id !== 1) {
+                            if (id !== 1 && this.roles[id].action === "defense") {
+                                this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                            } else {
                                 this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                             }
                             return true;
@@ -602,7 +606,9 @@ export default class Main {
                         const id: number = Storage.fullyMap[nr][nleft];
                         /** The obj is a bullet */
                         if (id && id !== +obj.hostId) {
-                            if (id !== 1) {
+                            if (id !== 1 && this.roles[id].action === "defense") {
+                                this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                            } else {
                                 this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                             }
                             return true;
@@ -630,7 +636,9 @@ export default class Main {
                         const id: number = Storage.fullyMap[nfoot][nc];
                         /** The obj is a bullet */
                         if (id && id !== +obj.hostId) {
-                            if (id !== 1) {
+                            if (id !== 1 && this.roles[id].action === "defense") {
+                                this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                            } else {
                                 this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                             }
                             return true;
@@ -649,7 +657,9 @@ export default class Main {
                         const id: number = Storage.fullyMap[nhead][nc];
                         /** The obj is a bullet */
                         if (id && id !== +obj.hostId) {
-                            if (id !== 1) {
+                            if (id !== 1 && this.roles[id].action === "defense") {
+                                this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                            } else {
                                 this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                             }
                             return true;

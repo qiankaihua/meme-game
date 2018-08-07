@@ -23,6 +23,11 @@ export default class AIController {
     }
 
     public start() {
+<<<<<<< HEAD
+=======
+        this.simulateKeyboardEvent("keydown", "Defense");
+        this.main();
+>>>>>>> 67f4c0818b976df509cca19e89ce17dd64160e56
         document.addEventListener("click", (event) => {
             if (this.commandList.length === 0) {
                 this.commandList = [];
