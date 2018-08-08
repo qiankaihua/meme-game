@@ -9,16 +9,16 @@ export default class Action extends Node {
     constructor(name: string) {
         super(name);
     }
-    public function toString(): string {
+    public toString(): string {
         return "Action";
     }
-    public function Clear(): void {
+    public Clear(): void {
         if (!this.Status !=== ActionStatus.Ready) {
             this.Exit();
             this.Status = ActionStatus.Ready;
         }
     }
-    public function Tick(): Result {
+    public Tick(): Result {
         let result: Result = Result.Ended;
         if (this.Status === ActionStatus.Ready) {
             this.Enter();
@@ -33,23 +33,23 @@ export default class Action extends Node {
         }
         return result;
     }
-    public function AddChild(Child: Node) {
+    public AddChild(Child: Node) {
         console.log("Action can not append child.");
     }
-    public function RemoveChild(Child: Node) {
+    public RemoveChild(Child: Node) {
         console.log("Action can not remove a child");
     }
-    protected function Enter(): void {
+    protected Enter(): void {
         if (Config.ENABLE_BTACTION_LOG === true) {
             console.log("Enter " + this.name + " [" + this.toString() + "]")
         }
     }
-    protected function Exit(): void {
+    protected Exit(): void {
         if (Config.ENABLE_BTACTION_LOG === true) {
             console.log("Exit " + this.name + " [" + this.toString() + "]")
         }
     }
-    protected function Execute(): Result {
+    protected Execute(): Result {
         return Result.Running;
     }
 

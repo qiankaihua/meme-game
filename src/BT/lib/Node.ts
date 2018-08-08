@@ -17,9 +17,9 @@ export default abstract class Node {
         this.activated = false;
         this.lastTimeEvaluate = 0;
         this.coolDown = 0;
-        this.children = Node[];
+        this.children = [];
     }
-    public function Activate(blackBoard: {[key: string]: any}) {
+    public Activate(blackBoard: {[key: string]: any}) {
         if (this.activated === true) return;
         this.blackBoard = blackBoard;
         if (this.preCondition !== null) {
@@ -33,48 +33,48 @@ export default abstract class Node {
         this.activated = true;
         this.lastTimeEvaluate = (new Date()).valueOf();
     }
-    public function CheckCanEvaluate() {
-        let CD: boolean = this.isCoolDown;
+    public CheckCanEvaluate() {
+        let CD: boolean = this.isCoolDown();
         return this.activated
             && CD
             && (this.preCondition === null || this.preCondition.check())
             && this.SelfCheckCanEvaluate();
     }
-    protected function SelfCheckCanEvaluate(): boolean {
+    protected SelfCheckCanEvaluate(): boolean {
         return true;
     };
-    public function Tick(): Result {
+    public Tick(): Result {
         return Result.Ended;
     }
-    public function Clear() {
+    public Clear() {
         // nothing to do
     }
-    public function AddChild(Child: Node) {
-        this.children.append(Child);
+    public AddChild(Child: Node) {
+        this.children.push(Child);
     }
-    public function RemoveChild(Child: Node) {
+    public RemoveChild(Child: Node) {
         for (let i = 0; i < this.children.length; i++) {
             if (this.children[i].name === Child.name) {
                 this.RemoveChildById(i);
             }
         }
     }
-    public function RemoveChildById(childId: number) {
+    public RemoveChildById(childId: number) {
         if (this.children.length > childId) {
             this.children.splice(childId, 1);
         }
     }
     
-    public get children(): Node[] {
+    public get getChildren(): Node[] {
         return this.children;
     }
-    public set blackBoard(blackBoard: {[key: string]: any}) {
+    public set setBlackBoard(blackBoard: {[key: string]: any}) {
         this.blackBoard = blackBoard;
     }
-    public set preCondition(preCondition: PreCondition) {
+    public set PreCondition(preCondition: PreCondition) {
         this.preCondition = preCondition;
     }
-    private function isCoolDown(): boolean {
+    private isCoolDown(): boolean {
         const timestamp = (new Date()).valueOf();
         return timestamp > this.coolDown + this.lastTimeEvaluate;
     }
