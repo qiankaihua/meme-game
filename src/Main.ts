@@ -1,8 +1,8 @@
 import AIController from "./AIController";
 import Bullet from "./Bullet";
 import Canvas from "./Canvas";
-import Role from "./Role";
 import Storage from "./Storage";
+import Role from "./Role";
 
 /**
  * Class Main
