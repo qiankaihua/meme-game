@@ -3,6 +3,9 @@ import Bullet from "./Bullet";
 import Canvas from "./Canvas";
 import Storage from "./Storage";
 import Role from "./Role";
+import Tree from "./BT/lib/Tree";
+import { blackBoard } from "./BT/lib/Constants";
+import Run from "./BT/Run";
 
 /**
  * Class Main
@@ -13,14 +16,18 @@ import Role from "./Role";
  * @prop {object} keydown - Record the key down
  * @prop {object} keycount - Record the key executed times
  * @prop {number} bulletId - The auto increment id of bullet
+ * @prop {number} bulletId2 - The auto increment id of bullet
  */
 export default class Main {
     private magicAI: AIController;
     private roles: {[key: string]: Role};
     private bullets: {[key: string]: Bullet};
+    private bullets2: {[key: string]: Bullet};
     private keydown: {[key: string]: boolean};
     private keycount: {[key: string]: number};
     private bulletId: number;
+    private bulletId2: number;
+    private BTree: Tree;
 
     /**
      * Create main environment
@@ -28,9 +35,12 @@ export default class Main {
     constructor() {
         this.roles = {};
         this.bullets = {};
+        this.bullets2 = {};
         this.keydown = {};
         this.keycount = {};
         this.bulletId = 0;
+        this.bulletId2 = 0;
+        this.BTree = new Run();
     }
 
     public Role(roleId: string): Role {
@@ -69,8 +79,18 @@ export default class Main {
 
         this.magicAI = new AIController(this.roles);
         this.renderMiniMap();
+
+        this.initBlackBoard();
+        this.updateBlackBoard();
+
+        this.BTree.Awake();
+
         this.update();
 
+        // setInterval(() => {
+        //     this.updateBlackBoard();
+        //     this.BTree.Update();
+        // }, 50);
         this.magicAI.start();
     }
     public aiKeyboardController(type: string, keyCode: number) {
@@ -152,7 +172,8 @@ export default class Main {
             attackRange: 12,
             moveSpeed: 4,
             jumpSpeed: 19,
-            weapon: id === "3" ? null : "gun",
+            // weapon: id === "3" ? null : "gun",
+            weapon: "gun",
         };
         this.roles[id] = new Role(data);
     }
@@ -203,6 +224,10 @@ export default class Main {
      * code: Defense - Defense
      */
     private update() {
+
+        this.updateBlackBoard();
+        this.BTree.Update();
+
         this.clearScene();
         /**
          * Player1
@@ -285,7 +310,7 @@ export default class Main {
                     default:
                         for (const aid of this.roles["2"].attackId) {
                             if (this.roles[aid].action === "defense") {
-                                this.roles[aid].healthPoint -= this.roles["2"].attackPower / 3;
+                                this.roles[aid].healthPoint -= 0; // this.roles["2"].attackPower / 3;
                             } else {
                                 this.roles[aid].healthPoint -= this.roles["2"].attackPower;
                             }
@@ -376,7 +401,7 @@ export default class Main {
                 this.roles["3"].attackKeepTimer = 30;
                 switch (this.roles["3"].weapon) {
                     case "gun":
-                        this.bullets[this.bulletId++] = new Bullet(
+                        this.bullets2[this.bulletId2++] = new Bullet(
                             this.roles["3"].x + 20,
                             this.roles["3"].y + this.roles["3"].height / 2,
                             6,
@@ -388,7 +413,7 @@ export default class Main {
                     default:
                         for (const aid of this.roles["3"].attackId) {
                             if (this.roles[aid].action === "defense") {
-                                this.roles[aid].healthPoint -= this.roles["3"].attackPower / 3;
+                                this.roles[aid].healthPoint -= 0; // this.roles["3"].attackPower / 3;
                             } else {
                                 this.roles[aid].healthPoint -= this.roles["3"].attackPower;
                             }
@@ -444,6 +469,18 @@ export default class Main {
                     this.ifOverDistance(key)
                 ) {
                     delete this.bullets[key];
+                }
+            }
+        }
+        for (const key in this.bullets2) {
+            if (this.bullets2[key]) {
+                this.bullets2[key].render();
+                this.bullets2[key].move();
+                if (
+                    this.collisionJudge(this.bullets2[key], this.bullets2[key].direction) ||
+                    this.ifOverDistance2(key)
+                ) {
+                    delete this.bullets2[key];
                 }
             }
         }
@@ -561,6 +598,22 @@ export default class Main {
         }
         return false;
     }
+    private ifOverDistance2(key: string): boolean {
+        if (this.bullets2[key]) {
+            let dis: number;
+            if (Storage.dx[this.bullets2[key].direction] === 1) {
+                dis = this.bullets2[key].x - this.bullets2[key].startX + Storage.sceneWidth;
+                dis %= Storage.sceneWidth;
+            } else {
+                dis = this.bullets2[key].startX - this.bullets2[key].x + Storage.sceneWidth;
+                dis %= Storage.sceneWidth;
+            }
+            if (dis > this.bullets2[key].maxDistance) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     /**
      * Check if colliding someone
@@ -588,7 +641,7 @@ export default class Main {
                         if (id && id !== +obj.hostId) {
                             if (id !== 1 ) {
                                 if (this.roles[id].action === "defense") {
-                                    this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                                    this.roles[id].healthPoint -= 0; // this.roles[obj.hostId].attackPower / 3;
                                 } else {
                                     this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                                 }
@@ -610,7 +663,7 @@ export default class Main {
                         if (id && id !== +obj.hostId) {
                             if (id !== 1 ) {
                                 if (this.roles[id].action === "defense") {
-                                    this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                                    this.roles[id].healthPoint -= 0; // this.roles[obj.hostId].attackPower / 3;
                                 } else {
                                     this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                                 }
@@ -642,7 +695,7 @@ export default class Main {
                         if (id && id !== +obj.hostId) {
                             if (id !== 1 ) {
                                 if (this.roles[id].action === "defense") {
-                                    this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                                    this.roles[id].healthPoint -= 0; // this.roles[obj.hostId].attackPower / 3;
                                 } else {
                                     this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                                 }
@@ -665,7 +718,7 @@ export default class Main {
                         if (id && id !== +obj.hostId) {
                             if (id !== 1 ) {
                                 if (this.roles[id].action === "defense") {
-                                    this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower / 3;
+                                    this.roles[id].healthPoint -= 0; // this.roles[obj.hostId].attackPower / 3;
                                 } else {
                                     this.roles[id].healthPoint -= this.roles[obj.hostId].attackPower;
                                 }
@@ -677,5 +730,38 @@ export default class Main {
             }
         }
         return false;
+    }
+    private updateBlackBoard(): void {
+        blackBoard.role.x = this.roles["3"].x;
+        blackBoard.role.y = this.roles["3"].y;
+        blackBoard.role.attackKeepTimer = this.roles["3"].attackKeepTimer;
+        blackBoard.enemy.x = this.roles["2"].x;
+        blackBoard.enemy.y = this.roles["2"].y;
+        blackBoard.bullets.length = 0;
+        for (const key in this.bullets) {
+            if (this.bullets[key]) {
+                blackBoard.bullets.push({
+                    startX: this.bullets[key].startX,
+                    width: this.bullets[key].width,
+                    height: this.bullets[key].height,
+                    x: this.bullets[key].x,
+                    y: this.bullets[key].y,
+                    dir: this.bullets[key].direction,
+                    maxDistence: this.bullets[key].maxDistance,
+                    speed: this.bullets[key].speed,
+                });
+            }
+        }
+        // console.log(this.bullets, blackBoard.bullets.length);
+    }
+    private initBlackBoard(): void {
+        blackBoard.Reset = false;
+        blackBoard.sence.height = Storage.sceneHeight;
+        blackBoard.sence.width = Storage.sceneWidth;
+        blackBoard.role.height = this.roles["3"].height;
+        blackBoard.role.width = this.roles["3"].width;
+        blackBoard.enemy.height = this.roles["2"].height;
+        blackBoard.enemy.width = this.roles["2"].width;
+        blackBoard.defenseTime = 1000;
     }
 }

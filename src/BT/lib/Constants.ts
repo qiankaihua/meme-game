@@ -15,7 +15,55 @@ enum ParallelFunction {
     AND     = 1,
     OR      = 2,
 }
+/**
+ * blackBoard:
+ *      bullets[]
+ *          startX
+ *          width
+ *          height
+ *          x
+ *          y
+ *          dir
+ *          maxDistence
+ *      sence
+ *          width
+ *          height
+ *      role
+ *          x
+ *          y
+ *          height
+ *          width
+ *      enemy
+ *          x
+ *          y
+ *          height
+ *          widht
+ *      defenseTime
+ */
+const blackBoard = {
+    Reset: false,
+    defenseTime: 0,
+    role: {
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+        attackKeepTimer: 0,
+    },
+    sence: {
+        width: 0,
+        height: 0,
+    },
+    bullets: new Array(),
+    enemy: {
+        x: 0,
+        y: 0,
+        height: 0,
+        width: 0,
+    },
+};
 export {
+    blackBoard,
     Status,
     Result,
     ActionStatus,

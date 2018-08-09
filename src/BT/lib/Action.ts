@@ -1,6 +1,6 @@
-import {ActionStatus, Result} from "./Constants"
+import {ActionStatus, Result} from "./Constants";
 import Config from "./Config";
-import PreCondition from "./PreCondition";
+// import PreCondition from "./PreCondition";
 import Node from "./Node";
 
 export default class Action extends Node {
@@ -13,7 +13,7 @@ export default class Action extends Node {
         return "Action";
     }
     public Clear(): void {
-        if (!this.Status !=== ActionStatus.Ready) {
+        if (this.Status !== ActionStatus.Ready) {
             this.Exit();
             this.Status = ActionStatus.Ready;
         }
@@ -34,23 +34,33 @@ export default class Action extends Node {
         return result;
     }
     public AddChild(Child: Node) {
-        console.log("Action can not append child.");
+        // console.log("Action can not append child.");
     }
     public RemoveChild(Child: Node) {
-        console.log("Action can not remove a child");
+        // console.log("Action can not remove a child");
     }
     protected Enter(): void {
         if (Config.ENABLE_BTACTION_LOG === true) {
-            console.log("Enter " + this.name + " [" + this.toString() + "]")
+            // console.log("Enter " + this.name + " [" + this.toString() + "]");
         }
     }
     protected Exit(): void {
         if (Config.ENABLE_BTACTION_LOG === true) {
-            console.log("Exit " + this.name + " [" + this.toString() + "]")
+            // console.log("Exit " + this.name + " [" + this.toString() + "]");
         }
     }
     protected Execute(): Result {
         return Result.Running;
     }
-
+    protected simulateKeyboardEvent(type: string, code: string) {
+        const event: KeyboardEvent = new KeyboardEvent(
+            type,
+            {
+                bubbles: true,
+                key: code,
+                code,
+            },
+        );
+        document.body.dispatchEvent(event);
+    }
 }

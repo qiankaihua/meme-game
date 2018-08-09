@@ -14,7 +14,7 @@ export default class Sequence extends Node {
             this.activeChild = this.children[0];
             this.activeIndex = 0;
         }
-        const result: Result = this.activeChild.Tick();
+        let result: Result = this.activeChild.Tick();
         if (result === Result.Ended) {
             this.activeIndex ++;
             if (this.activeIndex >= this.children.length) {

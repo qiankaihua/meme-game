@@ -23,9 +23,22 @@ export default class AIController {
     }
 
     public start() {
-        this.simulateKeyboardEvent("keydown", "Defense");
         this.main();
-        document.addEventListener("click", (event) => {
+        // document.addEventListener("click", (event) => {
+        //     if (this.commandList.length === 0) {
+        //         this.commandList = [];
+        //         this.clearTimer();
+        //         this.keyTimer = {};
+        //         this.routeFlag = {};
+        //         this.magicMap = [];
+        //         for (let r = 0; r < Storage.fullyMap.length; r++) {
+        //             this.magicMap[r] = Storage.fullyMap[r].slice(0);
+        //         }
+        //         this.followHim();
+        //         this.main();
+        //     }
+        // });
+        setInterval(() => {
             if (this.commandList.length === 0) {
                 this.commandList = [];
                 this.clearTimer();
@@ -38,17 +51,7 @@ export default class AIController {
                 this.followHim();
                 this.main();
             }
-        });
-        // setInterval(() => {
-        //     if (this.commandList.length === 0) {
-        //         this.commandList = [];
-        //         this.clearTimer();
-        //         this.keyTimer = {};
-        //         this.routeFlag = {};
-        //         this.followHim();
-        //         this.main();
-        //     }
-        // }, 1000);
+        }, 1000);
         // this.moveController(2, 100);
         // this.moveController(1, 20);
     }
@@ -86,8 +89,8 @@ export default class AIController {
         const moveSpeed: number = this.roles["3"].moveSpeed;
         const queue: PriorityQueue = new PriorityQueue(this.roles["3"].x, this.roles["3"].y, endX, endY);
 
-        console.log("started......");
-        console.log(this.roles["3"].x, this.roles["3"].y, endX, endY);
+        // console.log("started......");
+        // console.log(this.roles["3"].x, this.roles["3"].y, endX, endY);
         queue.push_back({
             x: this.roles["3"].x,
             y: this.roles["3"].y,
@@ -100,10 +103,10 @@ export default class AIController {
 
         while (queue.size) {
             count++;
-            // if (count > 15000) {
-            //     console.log("break", count);
-            //     return;
-            // }
+            if (count > 10000) {
+                // console.log("break", count);
+                return;
+            }
             const node: {[key: string]: any} = queue.pop();
 
             let extendNode = {
@@ -119,8 +122,8 @@ export default class AIController {
             if (leftCollision.role || rightCollision.role) {
                 // resolve node.route
                 this.resolveRoute(node.route);
-                console.log(node.route);
-                console.log(count);
+                // console.log(node.route);
+                // console.log(count);
                 Storage.findRouteBlock.ctx.fillStyle = this.randomColorRGBA();
                 Storage.findRouteBlock.ctx.fill();
                 return;
@@ -197,7 +200,7 @@ export default class AIController {
                 }
             }
         }
-        console.log(count);
+        // console.log(count);
         Storage.findRouteBlock.ctx.fillStyle = this.randomColorRGBA();
         Storage.findRouteBlock.ctx.fill();
         // console.log(count);
@@ -299,6 +302,10 @@ export default class AIController {
             frames++;
         }
         this.commandList.push({ code, frames, offsets });
+
+        offsets += frames + 10;
+        this.commandList.push({ code: "changeDir", frames: 0, offsets });
+
         Storage.route.ctx.fillStyle = this.randomColorRGBA();
         Storage.route.ctx.fill();
     }
@@ -331,6 +338,9 @@ export default class AIController {
     private moveController(code: string, frames: number, offsets: number) {
         // console.log("moveController: ", code, frames, offsets);
         if (offsets === 0) {
+            if (code === "changeDir") {
+                requestAnimationFrame(() => this.changeDir());
+            }
             if (this.keyTimer[code]) {
                 cancelAnimationFrame(this.keyTimer[code]);
             }
@@ -338,6 +348,23 @@ export default class AIController {
             this.run(code, frames);
         } else {
             requestAnimationFrame(() => this.moveController(code, frames, offsets - 1));
+        }
+    }
+    private changeDir(): void {
+        if ((this.roles["3"].x - this.roles["2"].x + 800) % 800 < 400) {
+            const code = "MoveLeft";
+            if (this.keyTimer[code]) {
+                cancelAnimationFrame(this.keyTimer[code]);
+            }
+            this.simulateKeyboardEvent("keydown", code);
+            this.run(code, 2);
+        } else {
+            const code = "MoveRight";
+            if (this.keyTimer[code]) {
+                cancelAnimationFrame(this.keyTimer[code]);
+            }
+            this.simulateKeyboardEvent("keydown", code);
+            this.run(code, 2);
         }
     }
 }

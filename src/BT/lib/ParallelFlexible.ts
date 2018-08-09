@@ -37,7 +37,7 @@ export default class ParallelFlexible extends Node {
     }
     public RemoveChild(node: Node) {
         for (let i = 0; i < this.children.length; i++) {
-            if (this.children[i].name === Child.name) {
+            if (this.children[i].name === node.name) {
                 this.RemoveChildById(i);
                 this.activeList.splice(i, 1);
             }

@@ -8,7 +8,7 @@ export default class Parallel extends Node {
     constructor(name:string, func: ParallelFunction = ParallelFunction.AND) {
         super(name);
         this.func = func;
-        this.result = Result[];
+        this.result = [];
     }
     public Tick(): Result {
         let endingResultCount = 0;
@@ -48,7 +48,7 @@ export default class Parallel extends Node {
     }
     public RemoveChild(node: Node) {
         for (let i = 0; i < this.children.length; i++) {
-            if (this.children[i].name === Child.name) {
+            if (this.children[i].name === node.name) {
                 this.RemoveChildById(i);
                 this.result.splice(i, 1);
             }
